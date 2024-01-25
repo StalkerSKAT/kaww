@@ -325,6 +325,9 @@ void BallistaHitBlob(CBlob@ this, Vec2f hit_position, Vec2f velocity, f32 damage
 
 void BallistaHitMap(CBlob@ this, const u32 offset, Vec2f hit_position, Vec2f velocity, const f32 damage, u8 customData)
 {
+
+	print("hit! " + (hit_position.x / 16)); // position / block_size
+
 	if (!this.hasTag("soundplayed"))
 	{
 		this.getSprite().PlayRandomSound("/ShellExplosion", 1.1, 0.9f + XORRandom(20) * 0.01f);
