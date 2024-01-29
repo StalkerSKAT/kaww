@@ -13,7 +13,7 @@ void onInit(CBlob@ this)
 {
 	this.Tag("projectile");
 
-	hit_map_already = false;
+	this.set_bool("map_is_hitted", false);
 
 	f32 damage_mod = 1.0f;
 	if (this.exists("damage_modifier") && this.get_f32("damage_modifier") > 0.05f) damage_mod = this.get_f32("damage_modifier");
@@ -329,9 +329,9 @@ void BallistaHitBlob(CBlob@ this, Vec2f hit_position, Vec2f velocity, f32 damage
 void BallistaHitMap(CBlob@ this, const u32 offset, Vec2f hit_position, Vec2f velocity, const f32 damage, u8 customData)
 {
 
-	if (!hit_map_already) {
+	if (!this.get_bool("map_is_hitted")) {
 		print("Angle: " + this.get_f32("original_angle") + " Distance: " + (hit_position.x / 16)); // position / block_size
-		hit_map_already = !hit_map_already;
+		this.set_bool("map_is_hitted", true);
 	}
 
 	if (!this.hasTag("soundplayed"))
