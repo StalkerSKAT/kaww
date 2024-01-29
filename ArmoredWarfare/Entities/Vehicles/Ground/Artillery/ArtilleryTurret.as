@@ -10,7 +10,7 @@ string[] smoke =
 	"LargeSmoke"
 };
 
-const u16 cooldown_time = 750; // 25 sec cd
+const u16 cooldown_time = 25; // 25 sec cd
 const f32 damage_modifier = 1.65f;
 
 const s16 init_gunoffset_angle = -2; // up by so many degrees
@@ -146,6 +146,21 @@ f32 getAngle(CBlob@ this, const u8 charge, VehicleInfo@ v)
 	return angle;
 }
 
+f32 getDisplayedAngle(CBlob@ this) 
+{
+
+	f32 offset = 90.0f;
+	if (this.isFacingLeft()) offset = 270.0f;
+
+	f32 sign = -1.0f;
+	if (this.isFacingLeft()) sign = 1.0f;
+
+	f32 angleWithNormal = this.get_f32("gunelevation");
+	f32 angleWithHorizon = (angleWithNormal - offset) * sign;
+
+	return Maths::Round(angleWithHorizon);
+}
+
 void onTick(CBlob@ this)
 {
 	s16 currentAngle = this.get_f32("gunelevation");
@@ -276,6 +291,7 @@ void onTick(CBlob@ this)
 		arm.SetOffset(arm.getOffset() - Vec2f(-barrel_compression + Maths::Min(v.getCurrentAmmo().fire_delay - v.cooldown_time, barrel_compression), 0).RotateBy(this.isFacingLeft() ? 90+this.get_f32("gunelevation") : 90-this.get_f32("gunelevation")));
 		arm.SetRelativeZ(-20.0f);
 	}
+
 }
 
 
@@ -389,19 +405,20 @@ void Vehicle_onFire(CBlob@ this, VehicleInfo@ v, CBlob@ bullet, const u8 _charge
 		bullet.setPosition(bullet_pos);
 		bullet.Tag("rpg"); // effects
 		bullet.Tag("artillery"); // shrapnel
+		bullet.set_f32("original_angle", getDisplayedAngle(this));
 
-		AttachmentPoint@ gunner = this.getAttachments().getAttachmentPointByName("GUNNER");
-		if (gunner !is null && gunner.getOccupied() !is null)
-		{
-			CBlob@ b = gunner.getOccupied();
-			if (b.getPlayer() !is null)
-			{
-				bullet.set_u16("ownerplayer_id", b.getPlayer().getNetworkID());
-				bullet.set_u16("ownerblob_id", b.getNetworkID());
-				b.Tag("camera_offset");
-				bullet.server_SetPlayer(b.getPlayer());
-			}
-		}
+		//AttachmentPoint@ gunner = this.getAttachments().getAttachmentPointByName("GUNNER");
+		//if (gunner !is null && gunner.getOccupied() !is null)
+		//{
+		//	CBlob@ b = gunner.getOccupied();
+		//	if (b.getPlayer() !is null)
+		//	{
+		//		bullet.set_u16("ownerplayer_id", b.getPlayer().getNetworkID());
+		//		bullet.set_u16("ownerblob_id", b.getNetworkID());
+		//		b.Tag("camera_offset");
+		//		bullet.server_SetPlayer(b.getPlayer());
+		//	}
+		//}
 
 		bullet.AddScript("ShrapnelOnDie.as");
 		bullet.set_u8("shrapnel_count", 10+XORRandom(7));
@@ -456,7 +473,7 @@ void Vehicle_onFire(CBlob@ this, VehicleInfo@ v, CBlob@ bullet, const u8 _charge
 		0,                                  // ?
 		"ShellCasing",                      // sound
 		this.get_u8("team_color"));         // team number
-	}	
+	}
 
 	v.last_charge = _charge;
 	v.charge = 0;
